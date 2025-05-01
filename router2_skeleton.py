@@ -64,7 +64,7 @@ def generate_forwarding_table_with_range(table):
         # (0.0.0.0 is only useful for finding the default port).
         if row[0] != "0.0.0.0":
             # 4. Store the network destination and netmask.
-            network_dst_string =  row[0]
+            network_dst_string = row[0]
             netmask_string = row[1]
             # 5. Convert both strings into their binary representations.
             network_dst_bin = ip_to_bin(network_dst_string)
@@ -93,7 +93,7 @@ def ip_to_bin(ip):
         bin_octet = bin(int_octet)
         # 6. convert the binary to string and remove the "0b" at the beginning of the string,
         bin_octet_string = bin_octet[2:]
-        # 7. while the sting representation of the binary is not 8 chars long,
+        # 7. while the string representation of the binary is not 8 chars long,
         # then add 0s to the beginning of the string until it is 8 chars long
         # (needs to be an octet because we're working with IP addresses).
         while len(bin_octet_string) < 8:
