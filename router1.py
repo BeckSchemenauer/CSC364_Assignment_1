@@ -26,7 +26,7 @@ def read_csv(path):
     # 1. Open the file for reading.
     table_file = open(path, "r")
     # 2. Store each line.
-    table = table_file.readlines()
+    table = table_file.readlines()[1:]  # skips header row that I added
     # 3. Create an empty list to store each processed row.
     table_list = []
     # 4. For each line in the file:
@@ -104,7 +104,7 @@ def ip_to_bin(ip):
     # 9. Once the entire string version of the binary IP is created, convert it into an actual binary int.
     ip_int = int(ip_bin_string, 2)
     # 10. Return the binary representation of this int.
-    return bin(ip_int)
+    return ip_int
 
 
 # The purpose of this function is to find the range of IPs inside a given a destination IP address/subnet mask pair.
@@ -177,12 +177,11 @@ for row in packets_table:
     ttl = int(row[3])
 
     # 8. Decrement the TTL by 1 and construct a new packet with the new TTL.
-    new_ttl = ttl - 1
+    new_ttl = int(ttl) - 1
     new_packet = sourceIP + " " + destinationIP + " " + payload + " " + str(new_ttl)
 
     # 9. Convert the destination IP into an integer for comparison purposes.
-    destinationIP_bin = ip_to_bin(destinationIP)
-    destinationIP_int = int(destinationIP_bin, 2)
+    destinationIP_int = ip_to_bin(destinationIP)
 
     # 9. Find the appropriate sending port to forward this new packet to.
     send_to_router = None
@@ -219,4 +218,4 @@ for row in packets_table:
         write_to_file("output/discarded_by_router_1.txt", new_packet)
 
     # Sleep for some time before sending the next packet (for debugging purposes)
-    time.sleep(1)
+    time.sleep(0.1)

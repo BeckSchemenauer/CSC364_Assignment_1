@@ -25,7 +25,7 @@ def read_csv(path):
     # 1. Open the file for reading.
     table_file = open(path, "r")
     # 2. Store each line.
-    table = table_file.readlines()
+    table = table_file.readlines()[1:]  # skips header row that I added
     # 3. Create an empty list to store each processed row.
     table_list = []
     # 4. For each line in the file:
@@ -103,7 +103,7 @@ def ip_to_bin(ip):
     # 9. Once the entire string version of the binary IP is created, convert it into an actual binary int.
     ip_int = int(ip_bin_string, 2)
     # 10. Return the binary representation of this int.
-    return bin(ip_int)
+    return ip_int
 
 
 # The purpose of this function is to find the range of IPs inside a given a destination IP address/subnet mask pair.
@@ -170,7 +170,7 @@ def write_to_file(path, packet_to_write, send_to_router=None):
 def start_server():
     # 1. Create a socket.
     host = "localhost"
-    port =  8002
+    port = 8002
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     print("Socket created")
@@ -196,10 +196,11 @@ def start_server():
         # 8. Accept the connection.
         connection, address = soc.accept()
         ip, port = address[0], int(address[1])
-        print("Connected with " + ip + ":" + port)
+        print("Connected with " + ip + ":" + str(port))
         # 9. Start a new thread for receiving and processing the incoming packets.
         try:
-            thread = Thread(target=receive_packet, args=(connection, forwarding_table_with_range, default_gateway_port))
+            thread = Thread(target=processing_thread, args=(connection, ip, port, forwarding_table_with_range, default_gateway_port))
+            thread.start()
         except:
             print("Thread did not start.")
             traceback.print_exc()
@@ -220,6 +221,10 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
         if packet is None:
             break
 
+        # prevents empty packets
+        if len(packet) != 4:
+            continue
+
         # 5. Store the source IP, destination IP, payload, and TTL.
         sourceIP = packet[0]
         destinationIP = packet[1]
@@ -227,12 +232,11 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
         ttl = packet[3]
 
         # 6. Decrement the TTL by 1 and construct a new packet with the new TTL.
-        new_ttl = ttl - 1
-        new_packet = sourceIP + " " + destinationIP + " " + payload + " " + new_ttl
+        new_ttl = int(ttl) - 1
+        new_packet = sourceIP + " " + destinationIP + " " + payload + " " + str(new_ttl)
 
         # 7. Convert the destination IP into an integer for comparison purposes.
-        destinationIP_bin = ip_to_bin(destinationIP)
-        destinationIP_int = int(destinationIP_bin, 2)
+        destinationIP_int = ip_to_bin(destinationIP)
 
         # 8. Find the appropriate sending port to forward this new packet to.
         send_to_router = None
