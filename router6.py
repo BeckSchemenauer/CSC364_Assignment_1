@@ -140,10 +140,14 @@ def receive_packet(connection, max_buffer_size):
     # 3. Decode the packet and strip any trailing whitespace.
     decoded_packet = received_packet.decode().strip()
     # 3. Append the packet to received_by_router_2.txt.
+
+    if len(received_packet) == 0:
+        return
+
     print("received packet", decoded_packet)
     write_to_file("output/received_by_router_6.txt", decoded_packet)
     # 4. Split the packet by the delimiter.
-    packet = decoded_packet.split(" ")
+    packet = decoded_packet.split(",")
     # 5. Return the list representation of the packet.
     return packet
 
@@ -230,7 +234,7 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
 
         # 6. Decrement the TTL by 1 and construct a new packet with the new TTL.
         new_ttl = int(ttl) - 1
-        new_packet = sourceIP + " " + destinationIP + " " + payload + " " + str(new_ttl)
+        new_packet = sourceIP + "," + destinationIP + "," + payload + "," + str(new_ttl)
 
         # 7. Convert the destination IP into an integer for comparison purposes.
         destinationIP_int = ip_to_bin(destinationIP)
@@ -247,15 +251,8 @@ def processing_thread(connection, ip, port, forwarding_table_with_range, default
         if send_to_router is None:
             send_to_router = default_gateway_port
 
-        if new_ttl <= 0:
-            print("DISCARD:", new_packet)
-            write_to_file("output/discarded_by_router_6.txt", new_packet)
-        elif send_to_router == "127.0.0.1":
-            print("OUT:", payload)
-            write_to_file("output/out_router_6.txt", payload)
-        else:
-            print("DISCARD:", new_packet)
-            write_to_file("output/discarded_by_router_6.txt", new_packet)
+        print("OUT:", payload)
+        write_to_file("output/out_router_6.txt", payload)
 
 
 # Main Program
